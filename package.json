@@ -1,0 +1,42 @@
+{
+  "name": "dsh-desktop",
+  "productName": "DeepSeek Harness Desktop",
+  "version": "1.0.0",
+  "description": "DeepSeek Harness 桌面端封装：自动启动 dsh web 服务并打开窗口，关闭窗口即关闭服务进程。",
+  "author": "suzi20",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "ai.deepseek.harness.desktop",
+    "productName": "DeepSeek Harness Desktop",
+    "npmRebuild": false,
+    "electronDownload": {
+      "cache": ".builder-cache"
+    },
+    "files": [
+      "main.js",
+      "config.json",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "portable": {
+      "artifactName": "DeepSeek-Harness-Desktop-${version}.exe"
+    }
+  }
+}
