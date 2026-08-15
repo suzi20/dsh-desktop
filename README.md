@@ -22,16 +22,37 @@
 
 ## 快速开始
 
+### 方式一：下载即用（推荐，零门槛）
+
+1. 到 [Releases](https://github.com/suzi20/dsh-desktop/releases) 下载
+   `DeepSeek-Harness-Desktop-vX.X.X-win-x64.zip`（约 130MB，绿色免安装）；
+2. 解压到任意目录（如 `D:\DeepSeek-Harness-Desktop`）；
+3. 双击压缩包里的 **`一键安装到桌面.cmd`** → 桌面自动出现
+   **"DeepSeek Harness 桌面版"** 快捷方式；
+4. 双击快捷方式即可使用：自动拉起服务、弹出窗口；**关窗即全部退出**。
+
+> 前提：本机已装 Node.js（≥22）且已有 DeepSeek Harness 部署（见[环境要求](#环境要求)）。
+
+### 方式二：源码运行（开发调试）
+
 ```bat
+git clone https://github.com/suzi20/dsh-desktop.git
 cd dsh-desktop
-npm install            REM 首次安装依赖
-启动桌面版.cmd          REM 或：npm start
+npm install
+一键安装到桌面.cmd        REM 或：npm start（直接运行，不建快捷方式）
 ```
 
 首次使用前把 `config.example.json` 复制为 `config.json` 并按需调整（见[配置](#配置)）。
 
-**便携版**：`npm run dist` 打包后，`dist\win-unpacked\` 整个文件夹即是绿色免安装版
-（约 200MB，含 Chromium 运行时），双击其中的 `DeepSeek-Harness-Desktop.exe` 即可。
+### 方式三：自己打包便携版
+
+```bat
+npm run dist
+```
+
+产物在 `dist\win-unpacked\`（整个文件夹即绿色便携版，内含
+`一键安装到桌面.cmd`），或 `dist\DeepSeek-Harness-Desktop-1.0.0.exe`
+（electron-builder 单文件 portable 版）。
 *注意：便携版是文件夹不是单文件，exe 依赖同目录的 `resources\app.asar` 和 Chromium
 运行库，不能单独拷走 exe。*
 
