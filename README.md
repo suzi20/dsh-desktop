@@ -1,67 +1,82 @@
-# DeepSeek Harness Desktop（dsh-desktop）
+# DeepSeek Harness Launcher（dsh-desktop）
 
-> Wrap the [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) web UI into a native Windows desktop app:
-> double-click to start, the window pops up automatically, and **closing the window terminates the whole process tree**.
+> 把 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) Web 界面封装成
+> Windows 上"双击即用"的启动器：自动拉起 `dsh web` 服务并打开页面，关掉管理窗口即
+> 连同服务进程一起退出。提供**轻量网页版**（推荐）与 **Electron 桌面版**（可选）两档。
 
-把 DeepSeek Harness Web 界面封装成 Windows 桌面软件：
+两种方案对比（实测数据）：
 
-- **双击即启动**：自动拉起 `dsh web` 服务（复用你现有的 `~/.dsh` 配置、会话与模型凭据）；
-- **自动弹出页面**：服务就绪后自动打开应用窗口；
-- **关闭页面即关闭进程**：关掉窗口会连同服务进程及其整个进程树（子代理、shell 等）一起结束，不留后台残留；
-- **单实例**：重复启动只会把已有窗口带到前台；
-- **智能避让**：端口上已有别的 `dsh web` 实例时自动"附着"，不会误杀你没打算关的服务。
+| | 网页版（推荐） | Electron 桌面版 |
+| --- | --- | --- |
+| 客户端内存 | **≈ 0**（复用已开浏览器，只多一个标签页 ~270MB） | ~900MB（自带整套 Chromium） |
+| 总内存（含 dsh 服务 352MB） | ≈ **620MB** | ≈ **1.25GB** |
+| 安装体积 | 两个脚本，<10KB | ~130MB 便携包 |
+| 窗口样式 | 你的默认浏览器 | 独立应用窗口（黑鲸图标） |
+| 关闭即退出 | 关闭启动器的控制台窗口 | 关闭应用窗口 |
 
 ## 环境要求
 
 | 依赖 | 说明 |
 | --- | --- |
-| Windows 10/11 x64 | 本封装目前针对 Windows（macOS/Linux 代码路径可用但未经测试） |
+| Windows 10/11 x64 | 本封装目前针对 Windows |
 | Node.js ≥ 22 | 需要在 PATH 中（用于拉起 dsh 服务进程） |
-| DeepSeek Harness 部署 | 本程序是**封装层**，不内置 Harness 本体；需要本机已有 `$DSH_HOME/profiles` 部署（含 `@deepseek-ai/dsh` 启动器） |
-| 用户数据 | 会话、凭据、设置全部沿用 `~/.dsh`，桌面端不复制、不搬移 |
+| DeepSeek Harness 部署 | 本仓库是**封装层**，不内置 Harness 本体；需要本机已有 `$DSH_HOME/profiles` 部署（含 `@deepseek-ai/dsh` 启动器） |
+| 用户数据 | 会话、凭据、设置全部沿用 `~/.dsh`，不复制、不搬移 |
 
 ## 快速开始
 
-### 方式一：下载即用（推荐，零门槛）
-
-1. 到 [Releases](https://github.com/suzi20/dsh-desktop/releases) 下载
-   `DeepSeek-Harness-Desktop-vX.X.X-win-x64.zip`（约 130MB，绿色免安装）；
-2. 解压到任意目录（如 `D:\DeepSeek-Harness-Desktop`）；
-3. 双击压缩包里的 **`一键安装到桌面.cmd`** → 桌面自动出现
-   **"DeepSeek Harness 桌面版"** 快捷方式；
-4. 双击快捷方式即可使用：自动拉起服务、弹出窗口；**关窗即全部退出**。
-
-> 前提：本机已装 Node.js（≥22）且已有 DeepSeek Harness 部署（见[环境要求](#环境要求)）。
-
-### 方式二：源码运行（开发调试）
+### 方式一：网页版（推荐，最轻量）
 
 ```bat
 git clone https://github.com/suzi20/dsh-desktop.git
 cd dsh-desktop
-npm install
-一键安装到桌面.cmd        REM 或：npm start（直接运行，不建快捷方式）
+启动网页版.cmd
 ```
 
-首次使用前把 `config.example.json` 复制为 `config.json` 并按需调整（见[配置](#配置)）。
+行为：
 
-### 方式三：自己打包便携版
+- 端口（默认 3080）已有服务 → 直接用默认浏览器打开页面；
+- 端口空闲 → 在本控制台**前台**启动 `dsh web`，就绪后自动打开默认浏览器；
+- **关闭控制台窗口 = 停止服务**（浏览器标签页可随时关，不影响服务）；
+- 配套 `停止网页版.cmd` 可一键结束所有 dsh 服务进程。
+
+### 方式二：Electron 桌面版（可选，功能全但吃内存）
 
 ```bat
-npm run dist
+npm install
+一键安装到桌面.cmd        REM 创建桌面快捷方式；或 npm start
 ```
 
-产物在 `dist\win-unpacked\`（整个文件夹即绿色便携版，内含
-`一键安装到桌面.cmd`），或 `dist\DeepSeek-Harness-Desktop-1.0.0.exe`
-（electron-builder 单文件 portable 版）。
-*注意：便携版是文件夹不是单文件，exe 依赖同目录的 `resources\app.asar` 和 Chromium
-运行库，不能单独拷走 exe。*
+也可到 [Releases](https://github.com/suzi20/dsh-desktop/releases) 下载
+`DeepSeek-Harness-Desktop-vX.X.X-win-x64.zip`（约 130MB 便携包，内含
+`一键安装到桌面.cmd`）。详见下方[桌面版章节](#electron-桌面版详细说明)。
+
+首次使用前把 `config.example.json` 复制为 `config.json` 并按需调整（见[配置](#配置)）。
 
 ## 工作模式（自动选择）
 
 | 启动时端口情况 | 模式 | 关窗行为 |
 | --- | --- | --- |
-| `127.0.0.1:3080` 已有 DeepSeek Harness 网页（例如手动 `dsh web` 正在运行） | **附着模式** | 只退出桌面端本身；**不杀**外部实例（不是本程序启动的） |
-| 端口空闲 | **自启模式** | 终止自启服务进程的整棵进程树（`taskkill /T /F`） |
+| `127.0.0.1:3080` 已有 DeepSeek Harness 网页（例如手动 `dsh web` 正在运行） | **附着模式** | 只打开页面，**不杀**外部实例（不是本程序启动的） |
+| 端口空闲 | **自启模式** | 网页版：关闭控制台窗口即终止服务；桌面版：关窗即 `taskkill /T /F` 整树终止 |
+
+## 网页版的生命周期
+
+```
+双击 启动网页版.cmd
+  → 探测 3080：有服务？→ 打开默认浏览器，结束（不碰已有服务）
+  → 没有？→ 本控制台前台运行 node <dsh> web --port 3080
+  → 后台助手轮询端口，就绪后自动打开默认浏览器（最多等 120 秒）
+  → 关闭控制台窗口 = 服务进程终止（Ctrl+C 亦可）
+配套：停止网页版.cmd —— 结束所有 dsh 服务进程（bin.js web）及其子进程
+```
+
+网页版**没有**客户端进程内存开销：页面跑在你本来就开着的浏览器里（只多一个标签页
+~270MB 渲染进程），服务本体 ~350MB；合计比 Electron 桌面版省一半以上。
+
+## Electron 桌面版详细说明
+
+以下章节仅适用于 `main.js` + `npm install` 的 Electron 桌面版（方式二）。
 
 ## 配置
 
@@ -88,7 +103,7 @@ npm run dist
 `$DSH_HOME/profiles/node_modules/@deepseek-ai/dsh/lib/bin.js`（已部署包）→
 `<checkoutDir>/apps/cli/lib/bin.js`（构建产物）→ `<checkoutDir>/apps/cli/src/bin.ts`（源码 + tsx）。
 
-## 工作原理：关窗如何做到"进程必死"
+### 桌面版工作原理：关窗如何做到"进程必死"
 
 ```
 你点 X
@@ -107,11 +122,14 @@ npm run dist
 占着端口空转，但**下次启动会自动附着复用**，数据安全、不冲突——等于自动回收。
 Electron 的 4 个同名进程（主/GPU/渲染/工具）是单个实例的正常架构，不是残留。
 
-## 如何确认"关窗后进程已终止"
+## 如何确认"关窗/关控制台后进程已终止"
 
-**方法一：一键检查脚本** `检查进程.cmd [端口]`（默认 3080），输出服务进程、端口监听、日志末尾三项。
+**网页版**：关闭控制台窗口后跑 `netstat -ano | findstr :3080`，无输出即服务已退出；
+也可用 `停止网页版.cmd` 主动结束。
 
-**方法二：看应用日志**（`%APPDATA%\dsh-desktop\desktop.log`），正常关闭后末尾应有：
+**桌面版**：一键检查脚本 `检查进程.cmd [端口]`（默认 3080），输出服务进程、端口监听、日志末尾三项。
+
+**桌面版·方法二：看应用日志**（`%APPDATA%\dsh-desktop\desktop.log`），正常关闭后末尾应有：
 
 ```
 shutdown: 关闭窗口 → 终止自启服务进程
@@ -120,7 +138,7 @@ killOwnedServer pid=XXXX
 ✅ 确认：服务进程 XXXX 已退出
 ```
 
-**方法三：手动命令**
+**桌面版·方法三：手动命令**
 
 ```bat
 netstat -ano | findstr :3080                                  REM 无输出 = 已释放
@@ -129,9 +147,9 @@ powershell -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLi
 ```
 
 > 前提：附着模式下关窗本来就不杀外部实例。要验证"关窗即关进程"，先停掉外部实例，
-> 再启动桌面版（日志会写"未检测到实例，启动服务…"）。
+> 再启动（日志会写"未检测到实例，启动服务…"）。
 
-## 打包发布
+### 桌面版打包发布
 
 ```bat
 npm run dist
@@ -149,19 +167,21 @@ set ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-buil
 > 拷为 `dist/win-unpacked`，`app.asar` 用 `@electron/asar` 打包后放入 `resources/`，再用
 > `rcedit --set-icon assets/icon.ico` 替换 exe 图标（参考项目内 `package.json` 的 build 字段）。
 
-## 日志
+### 日志（桌面版）
 
 运行日志在 `%APPDATA%\dsh-desktop\desktop.log`（开发模式可用 `DSH_DESKTOP_LOG` 重定向），
 记录启动、模式选择、服务拉起、关窗清理与确认全过程。
 
 ## 常见问题（FAQ）
 
-- **为什么任务管理器里有 4 个同名进程？** 单个 Electron 实例的正常架构（主/GPU/渲染/工具），不是残留。
+- **网页版和桌面版能同时用吗？** 不建议：两者共用 3080 端口，会互相"附着"。
+  用哪个就关掉另一个（先 `停止网页版.cmd` 或关桌面版窗口）。
+- **为什么任务管理器里有 4 个同名进程？** 单个 Electron 实例的正常架构（主/GPU/渲染/工具），不是残留；网页版没有这个问题。
 - **关窗后 node 进程还在？** 自启服务被杀时正在收尾，等 5～10 秒再看；仍存在且日志无
   "确认已退出"则属上面说的残留边界场景，可手动结束或下次启动自动附着复用。
 - **提示"服务启动失败"？** 检查 Node.js 是否在 PATH、`config.json` 的 `checkoutDir`/
   `dshHome` 是否正确、端口是否被非 DSH 程序占用。
-- **换一台电脑能用吗？** 需要那台机器也装 Node.js + DeepSeek Harness 部署；本封装不含 Harness 本体。
+- **换一台电脑能用吗？** 需要那台机器也装 Node.js + DeepSeek Harness 部署；本仓库不含 Harness 本体。
 
 ## 隐私与限制
 
